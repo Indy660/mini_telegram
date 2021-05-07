@@ -11,8 +11,13 @@
                 <div class="feed_block">
                     <div class="input_block">
                         <textarea v-model="new_post"></textarea>
-                        <div class="button_add_post">
-                            <div class="text" @click="addPost()">Добавить запись</div>
+                        <div class="block_with_buttons">
+                            <div class="button_add_image" @click="open_popup = true">
+                                <div class="text">+</div>
+                            </div>
+                            <div class="button_add_post" @click="addPost()">
+                                <div class="text">Добавить запись</div>
+                            </div>
                         </div>
                     </div>
                     <div class="feed_content">
@@ -21,7 +26,11 @@
 <!--                                [randomRGBA()]-->
 <!--                                , {'background-image': 'url(' + getAvatar(post.avatar) + ')'}-->
 <!--                                {'background-image': 'url(' + getAvatar(post.avatar) + ')'},-->
-                                <div class="avatar" :style="{backgroundImage: 'url(' + getAvatar(post.avatar) + ')', backgroundColor: randomRGBA(post.avatar)}"></div>
+                                <div class="avatar"
+                                     :style="{backgroundImage: 'url(' + getAvatar(post.avatar) + ')',backgroundColor: randomRGBA(post.avatar)}"
+                                     @mouseover="showUserName(post.name_user, index)" @mouseleave="hideUserName()">
+                                    <div v-if="show_user_name" class="user_name_block">{{ post.name_user }}</div>
+                                </div>
                                 <div class="text_block">
                                     <template v-if="post.preview">
                                         <div class="preview"></div>
@@ -49,14 +58,22 @@
                 </div>
             </div>
         </div>
+        <template v-if="open_popup">
+            <DragAndDropComponent :shown.sync="open_popup"/>
+        </template>
     </div>
 </template>
 
 <script>
+    import DragAndDropComponent from "./DragAndDropComponent";
     export default {
         name: 'MainComponent',
+        components: {
+            DragAndDropComponent
+        },
         data() {
             return {
+                open_popup: false,
                 new_post: '',
                 user_info: {
                     name_user: 'user_user',
@@ -95,7 +112,7 @@
                     2: {
                         id: 2,
                         text: '131231',
-                        name_user: 'vasya',
+                        name_user: 'nikita',
                         avatar: 7,
                         preview: '',
                         comments: {
@@ -125,7 +142,7 @@
                    3: {
                         id: 3,
                         text: '"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."',
-                        name_user: 'vasya',
+                        name_user: 'dima',
                         avatar: 555,
                         preview: '',
                         comments: {
@@ -139,6 +156,7 @@
                         }
                     },
                 },
+                show_user_name: '',
                 top_themes: {
 
                 }
@@ -161,7 +179,7 @@
                 // let s = 255;
                 // return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
                 const colors = ['#48C7AD', '#883227', '#E3AB6A', '#87DE20', '#FBE2EB', '#380D96', '#2B70D8', '#E64BC9', '#F9E6E6', '#8C00FB']
-                return id <= 10 ? colors[id-1] : id % colors.length
+                return id <= 10 ? colors[id-1] : colors[id % colors.length]
 
             },
             makeId(length) {
@@ -232,35 +250,68 @@
                         align-items: flex-end;
                         justify-content: space-between;
                         margin-bottom: 30px;
+
                         textarea {
                             width: 450px;
                             height: 100%;
                             resize: none;
-                            border: 1px solid rgba(0,0,0,.1);
+                            border: 1px solid rgba(0, 0, 0, .1);
                             font-size: 18px;
+
                             &:focus {
                                 border-color: #98a8f8;
                                 outline: none;
                             }
                         }
-                        .button_add_post {
-                            width: 200px;
-                            height: 50px;
-                            background-color: #3440ed;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            cursor: pointer;
-                            &:hover {
-                                background-color: #3560ed;
+
+                        .block_with_buttons {
+                            .button_add_image {
+                                width: 50px;
+                                height: 50px;
+                                background-color: #87ed74;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                cursor: pointer;
+                                margin-bottom: 30px;
+
+                                &:hover {
+                                    background-color: #b6edab;
+                                }
+
+                                &:active {
+                                    background-color: #18ed0c;
+                                }
+
+                                .text {
+                                    color: black;
+                                    font-size: 20px;
+                                    text-align: center;
+                                }
                             }
-                            &:active {
-                                background-color: #1226ed;
-                            }
-                            .text {
-                                color: white;
-                                font-size: 14px;
-                                text-align: center;
+
+                            .button_add_post {
+                                width: 200px;
+                                height: 50px;
+                                background-color: #3440ed;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                cursor: pointer;
+
+                                &:hover {
+                                    background-color: #3560ed;
+                                }
+
+                                &:active {
+                                    background-color: #1226ed;
+                                }
+
+                                .text {
+                                    color: white;
+                                    font-size: 14px;
+                                    text-align: center;
+                                }
                             }
                         }
                     }
@@ -283,6 +334,25 @@
                                     background-repeat: no-repeat;
                                     flex: none;
                                     margin-right: 20px;
+                                    position: relative;
+                                    .user_name_block {
+                                        /*all: unset;*/
+                                        position: absolute;
+                                        min-width: 50px;
+                                        max-height: 20px;
+                                        background: white;
+                                        top: -30px;
+                                        z-index: 3;
+                                        font-style: normal;
+                                        font-weight: normal;
+                                        font-size: 14px;
+                                        line-height: 17px;
+                                        color: black;
+                                        opacity: 1;
+                                        text-align: center;
+                                        /*padding: 10px;*/
+                                        white-space: nowrap;
+                                    }
                                 }
                                 .text_block {
                                     width: 600px;
