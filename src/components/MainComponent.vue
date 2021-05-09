@@ -28,8 +28,8 @@
 <!--                                {'background-image': 'url(' + getAvatar(post.avatar) + ')'},-->
                                 <div class="avatar"
                                      :style="{backgroundImage: 'url(' + getAvatar(post.avatar) + ')',backgroundColor: randomRGBA(post.avatar)}"
-                                     @mouseover="showUserName(post.name_user, index)" @mouseleave="hideUserName()">
-                                    <div v-if="show_user_name" class="user_name_block">{{ post.name_user }}</div>
+                                     @mouseover="showUserName(post)" @mouseleave="hideUserName()">
+                                    <div v-if="post.id === show_user_name.id" class="user_name_block">{{ post.name_user }}</div>
                                 </div>
                                 <div class="text_block">
                                     <template v-if="post.preview">
@@ -43,7 +43,10 @@
                             <template v-if="post.comments">
                                 <div class="comments">
                                     <div class="comment_block" v-for="(comment, index) in post.comments" :key="index">
-                                        <div class="avatar" :style="{backgroundImage: 'url(' + getAvatar(comment.avatar) + ')', backgroundColor: randomRGBA(comment.avatar)}"></div>
+                                        <div class="avatar"
+                                             :style="{backgroundImage: 'url(' + getAvatar(comment.avatar) + ')', backgroundColor: randomRGBA(comment.avatar)}"
+                                            @mouseover="showUserName(comment)" @mouseleave="hideUserName()">
+                                        ></div>
                                         <div class="comment">
                                             {{ comment.text }}
                                         </div>
@@ -120,7 +123,7 @@
                                 id: 1,
                                 text: '131231',
                                 avatar: 9,
-                                name_user: 'sf sf 234',
+                                name_user: 'dima',
                                 preview: '',
                             },
                             2: {
@@ -134,7 +137,7 @@
                                 id: 3,
                                 text: '13fs21341 sf1231',
                                 avatar: 11,
-                                name_user: 'sfs 23',
+                                name_user: 'sasha 666',
                                 preview: '',
                             },
                         }
@@ -150,7 +153,7 @@
                                 id: 1,
                                 text: '131231',
                                 avatar: 7,
-                                name_user: '',
+                                name_user: 'katya',
                                 preview: '',
                             }
                         }
@@ -201,6 +204,7 @@
             //     // return '/assets/images/avataaars_' + number + '.svg'
             // },
             getAvatar(avatar) {
+                //12 - по количеству фотографий в аватарках
                 const name = avatar <= 10 ? avatar : avatar % 12 === 0 ? 1 : avatar % 12
                 // console.log(name)
                 let images = require.context('../assets/images/avatars', false, /\.svg$/)
@@ -208,6 +212,17 @@
             },
             addPost() {
 
+            },
+            showUserName(obj) {
+                this.show_user_name = obj;
+                if (Object.prototype.hasOwnProperty.call(obj, "comments")) {
+                    this.show_user_name.post = true
+                } else {
+                    this.show_user_name.post = false
+                }
+            },
+            hideUserName() {
+                this.show_user_name = {}
             }
         }
     }

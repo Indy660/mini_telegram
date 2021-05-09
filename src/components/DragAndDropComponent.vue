@@ -6,6 +6,7 @@
             <form ref="fileform" class="form">
                 Перетащите файлы, которые хотите закрепить в посте (максимум 4)
             </form>
+            <input type="file" class="input_files" @change="onFileChange" />
 <!--            <div class="area_file">-->
 <!--                <div class="file" v-for="(file, index) in files" :key="index">-->
 <!--&lt;!&ndash;                    {{ file }}&ndash;&gt;-->
@@ -13,8 +14,8 @@
 <!--            </div>-->
             <div class="area_file">
                 <div v-for="(file, key) in files" :key="key">
-                    <div class="file" v-bind:ref="'preview'+parseInt( key )">
-                        <div class="delete_file">&#10005;</div>
+                    <div class="file" v-bind:ref="'preview' + parseInt(key)">
+                        <div class="delete_file" @click="deleteFile(key)">&#10005;</div>
 <!--                    </img>-->
                     <!--                {{ file.name }}-->
                     </div>
@@ -67,30 +68,33 @@ export default {
         }, false);
     },
     methods: {
-        // submitFiles() {
-        //     // console.log(this.workflowData.current_user)
-        //     const formData = new FormData();
-        //     for (let i = 0; i < this.files.length; i++) {
-        //         const file = this.files[i];
-        //         formData.append('file_' + (i + 1), file);
-        //     }
-        // },
+        onFileChange(event) {
+            const file = event.target.files[0];
+            this.files.push(file);
+            this.getImagePreviews()
+        },
         getImagePreviews() {
             for (let i = 0; i < this.files.length; i++) {
                 if (/\.(jpe?g|png|gif)$/i.test(this.files[i].name)) {
                     let reader = new FileReader();
                     reader.addEventListener("load", function () {
-                        this.$refs['preview' + parseInt(i)][0].backgroundImage = reader.result;
+                        this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("${reader.result}")`;
                         // this.$refs['preview' + parseInt(i)][0].src = reader.result;
                     }.bind(this), false);
                     reader.readAsDataURL(this.files[i]);
                 } else {
                     this.$nextTick(function () {
-                        this.$refs['preview' + parseInt(i)][0].backgroundImage = "url('../assets/images/default_image.png')";
+                        this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("../assets/images/default_image.png")`
+                            // "url('../assets/images/default_image.png')";
                         // this.$refs['preview' + parseInt(i)][0].src = '/images/file.png';
                     });
                 }
             }
+        },
+        deleteFile(index) {
+            // почему удаляются с конца???
+            // console.log(index)
+            this.files.splice(index, 1)
         },
         closePopup() {
             this.$emit('update:shown', false)
@@ -99,7 +103,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
     .overlay {
         position: fixed;
         height: 100%;
@@ -112,93 +116,102 @@ export default {
         z-index: 10;
         overflow-y: auto;
         cursor: pointer;
+
+        .pop_up {
+            width: 650px;
+            height: 550px;
+            padding: 40px;
+            position: absolute;
+            left: calc(50% - 325px);
+            top: 60px;
+            z-index: 11;
+            background-color: white;
+            overflow: hidden;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+
+            .name {
+                font-size: 25px;
+                margin-bottom: 20px;
+                flex: none
+            }
+
+            .form {
+                /*width: inherit;*/
+                /*height: inherit;*/
+                width: 80%;
+                height: 280px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border: 1px dashed #8b8dc0;
+                color: rgba(0, 0, 0, 0.7);
+                text-align: center;
+                padding: 0 30px;
+                flex: none;
+                &.form_dragEnter {
+                    background: #98ebfd;
+                    border: 1px dashed #000000;
+                    transition: 0.3s;
+                }
+            }
+            .input_files {
+                flex: none;
+                margin: 20px 0;
+            }
+
+            .area_file {
+                display: flex;
+                flex-wrap: wrap;
+                flex: none;
+                height: 200px;
+                width: 100%;
+                overflow-y: auto;
+                margin-top: 20px;
+                &::-webkit-scrollbar {
+                    width: 5px;
+                    /*height: 8px;*/
+                }
+                &::-webkit-scrollbar-thumb {
+                    background-color: #919bab;
+                }
+                .file {
+                    width: 150px;
+                    height: 100px;
+                    flex: none;
+                    margin-right: 30px;
+                    margin-bottom: 30px;
+                    position: relative;
+                    background-size: cover;
+                    background-repeat: no-repeat;
+                    border: 1px solid rgba(0, 0, 0, 0.1);
+
+                    .delete_file {
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background-color: white;
+                        /*text-align: center;*/
+                        border: 1px solid rgba(0, 0, 0, 0.3);
+                        outline: none;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: black;
+
+                        &:hover {
+                            background-color: red;
+                            color: white;
+                        }
+                    }
+                }
+            }
+        }
     }
-
-    .pop_up {
-        width: 650px;
-        height: 550px;
-        padding: 40px;
-        position: absolute;
-        left: calc(50% - 325px);
-        top: 60px;
-        z-index: 11;
-        background-color: white;
-        overflow: hidden;
-
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-    }
-
-    .name {
-        font-size: 25px;
-        margin-bottom: 20px;
-        flex: none
-    }
-
-    .form {
-        /*width: inherit;*/
-        /*height: inherit;*/
-        width: 80%;
-        height: 280px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 1px dashed #8b8dc0;
-        color: rgba(0, 0, 0, 0.7);
-        text-align: center;
-        padding: 0 30px;
-        flex: none
-    }
-
-    .form_dragEnter {
-        background: #98ebfd;
-        border: 1px dashed #000000;
-        transition: 0.3s;
-    }
-
-    .area_file {
-        display: flex;
-        flex-wrap: wrap;
-        flex: none;
-        height: 200px;
-        width: 100%;
-        overflow-y: auto;
-        margin-top: 20px;
-    }
-    .file {
-        width: 100px;
-        height: 100px;
-        flex: none;
-        margin-right: 30px;
-        margin-bottom: 30px;
-        position: relative;
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
-
-    .delete_file {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: white;
-        /*text-align: center;*/
-        border: 1px solid rgba(0, 0, 0, 0.3);
-        outline: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: black;
-    }
-
-    .delete_file:hover {
-        background-color: red;
-        color: white;
-    }
-
-
 </style>
