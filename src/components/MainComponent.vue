@@ -28,8 +28,12 @@
 <!--                                {'background-image': 'url(' + getAvatar(post.avatar) + ')'},-->
                                 <div class="avatar"
                                      :style="{backgroundImage: 'url(' + getAvatar(post.avatar) + ')',backgroundColor: randomRGBA(post.avatar)}"
-                                     @mouseover="showUserName(post)" @mouseleave="hideUserName()">
-                                    <div v-if="post.id === show_user_name.id" class="user_name_block">{{ post.name_user }}</div>
+                                     @mouseover="showUserName('post', post.id)" @mouseleave="hideUserName()"
+                                >
+                                    <div v-if="post.id === show_user_name.id && show_user_name.type === 'post'" class="user_name_block">
+                                        {{ post.name_user }}
+                                        <div class="arrow"></div>
+                                    </div>
                                 </div>
                                 <div class="text_block">
                                     <template v-if="post.preview">
@@ -45,8 +49,14 @@
                                     <div class="comment_block" v-for="(comment, index) in post.comments" :key="index">
                                         <div class="avatar"
                                              :style="{backgroundImage: 'url(' + getAvatar(comment.avatar) + ')', backgroundColor: randomRGBA(comment.avatar)}"
-                                            @mouseover="showUserName(comment)" @mouseleave="hideUserName()">
-                                        ></div>
+                                            @mouseover="showUserName('comment', comment.id, post.id)" @mouseleave="hideUserName()"
+                                        >
+<!--                                            v-if="comment.id === show_user_name.id && show_user_name.type === 'comment' && post.id === show_user_name.post_id"-->
+                                            <div  v-if="comment.id === show_user_name.id && show_user_name.type === 'comment' && post.id === show_user_name.post_id"  class="user_name_block">
+                                                {{ comment.name_user }}
+                                                <div class="arrow"></div>
+                                            </div>
+                                        </div>
                                         <div class="comment">
                                             {{ comment.text }}
                                         </div>
@@ -85,7 +95,7 @@
                     1: {
                         id: 1,
                         text: '"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."',
-                        name_user: 'vasya',
+                        name_user: 'vasya Panfilov 1111',
                         avatar: 12,
                         preview: '',
                         comments: {
@@ -93,7 +103,7 @@
                                 id: 1,
                                 text: '131231',
                                 avatar: 7,
-                                name_user: 'sf sf 234',
+                                name_user: 'sf sf 234 sdfsfdasasd',
                                 preview: '',
                             },
                             2: {
@@ -159,7 +169,7 @@
                         }
                     },
                 },
-                show_user_name: '',
+                show_user_name: {},
                 top_themes: {
 
                 }
@@ -213,13 +223,11 @@
             addPost() {
 
             },
-            showUserName(obj) {
-                this.show_user_name = obj;
-                if (Object.prototype.hasOwnProperty.call(obj, "comments")) {
-                    this.show_user_name.post = true
-                } else {
-                    this.show_user_name.post = false
-                }
+            showUserName(type, id, post_id) {
+                // console.log(this.show_user_name)
+                this.$set(this.show_user_name, 'type', type)
+                this.$set(this.show_user_name, 'id', id)
+                post_id ?  this.$set(this.show_user_name, 'post_id', post_id) : ''
             },
             hideUserName() {
                 this.show_user_name = {}
@@ -347,6 +355,7 @@
                                     border-radius: 50%;
                                     background-size: contain;
                                     background-repeat: no-repeat;
+                                    background-position: center;
                                     flex: none;
                                     margin-right: 20px;
                                     position: relative;
@@ -355,8 +364,8 @@
                                         position: absolute;
                                         min-width: 50px;
                                         max-height: 20px;
-                                        background: white;
-                                        top: -30px;
+                                        background: #9de9ff;
+                                        top: 13px;
                                         z-index: 3;
                                         font-style: normal;
                                         font-weight: normal;
@@ -367,6 +376,22 @@
                                         text-align: center;
                                         /*padding: 10px;*/
                                         white-space: nowrap;
+                                        border: 1px solid rgba(0, 0, 0, .1);
+                                        border-left: none;
+                                        left: -60px;
+                                        .arrow {
+                                            position: absolute;
+                                            width: 0;
+                                            height: 0;
+                                            border: 7px solid #9de9ff;
+                                            border-top-color: transparent;
+                                            /*border-left-color: transparent;*/
+                                            border-bottom-color: transparent;
+                                            border-right-color: transparent;
+                                            top: 2px;
+                                            right: -15px;
+                                            z-index: 3;
+                                        }
                                     }
                                 }
                                 .text_block {
@@ -383,6 +408,7 @@
                                 }
                             }
                             .comments {
+                                margin-left: 30px;
                                 .comment_block {
                                     margin-bottom: 15px;
                                     display: flex;
@@ -394,13 +420,44 @@
                                         border-radius: 50%;
                                         background-size: contain;
                                         background-repeat: no-repeat;
+                                        background-position: center;
                                         flex: none;
                                         border: 1px solid rgba(0,0,0,.1);
                                         margin-right: 20px;
+                                        position: relative;
+                                        .user_name_block {
+                                            position: absolute;
+                                            min-width: 50px;
+                                            max-height: 20px;
+                                            background: #d2dbff;
+                                            top: 5px;
+                                            z-index: 3;
+                                            font-style: normal;
+                                            font-weight: normal;
+                                            font-size: 14px;
+                                            line-height: 17px;
+                                            color: black;
+                                            opacity: 1;
+                                            text-align: center;
+                                            white-space: nowrap;
+                                            border: 1px solid rgba(0, 0, 0, .1);
+                                            border-left: none;
+                                            left: -60px;
+                                            direction: rtl;
+                                            .arrow {
+                                                position: absolute;
+                                                width: 0;
+                                                height: 0;
+                                                border: 7px solid #d2dbff;
+                                                border-top-color: transparent;
+                                                border-bottom-color: transparent;
+                                                border-right-color: transparent;
+                                                top: 2px;
+                                                right: -15px;
+                                                z-index: 3;
+                                            }
+                                        }
                                     }
-                                    /*.avatar_1 {*/
-                                    /*    background-image: url('../assets/logo.png')*/
-                                    /*}*/
                                     .comment {
                                         text-align: left;
                                     }
