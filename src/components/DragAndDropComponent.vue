@@ -7,17 +7,13 @@
                 Перетащите файлы, которые хотите закрепить в посте (максимум 4)
             </form>
             <input type="file" class="input_files" @change="onFileChange" />
-<!--            <div class="area_file">-->
-<!--                <div class="file" v-for="(file, index) in files" :key="index">-->
-<!--&lt;!&ndash;                    {{ file }}&ndash;&gt;-->
-<!--                </div>-->
-<!--            </div>-->
             <div class="area_file">
                 <div v-for="(file, key) in files" :key="key">
-                    <div class="file" v-bind:ref="'preview' + parseInt(key)">
-                        <div class="delete_file" @click="deleteFile(key)">&#10005;</div>
-<!--                    </img>-->
-                    <!--                {{ file.name }}-->
+<!--                    <div class="file" v-bind:ref="'preview' + parseInt(key)">-->
+<!--                        <div class="delete_file" @click="deleteFile(file, key)">&#10005;</div>-->
+<!--                    </div>-->
+                    <div class="file"  :style="{backgroundImage: `url('${file}')`}">
+                        <div class="delete_file" @click="deleteFile(file, key)">&#10005;</div>
                     </div>
                 </div>
             </div>
@@ -69,9 +65,10 @@ export default {
     },
     methods: {
         onFileChange(event) {
+            console.log('onFileChange')
             const file = event.target.files[0];
-            this.files.push(file);
-            this.getImagePreviews()
+            this.files.push(URL.createObjectURL(file));
+            // this.getImagePreviews()
         },
         getImagePreviews() {
             for (let i = 0; i < this.files.length; i++) {
@@ -79,22 +76,20 @@ export default {
                     let reader = new FileReader();
                     reader.addEventListener("load", function () {
                         this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("${reader.result}")`;
-                        // this.$refs['preview' + parseInt(i)][0].src = reader.result;
                     }.bind(this), false);
                     reader.readAsDataURL(this.files[i]);
                 } else {
                     this.$nextTick(function () {
                         this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("../assets/images/default_image.png")`
-                            // "url('../assets/images/default_image.png')";
-                        // this.$refs['preview' + parseInt(i)][0].src = '/images/file.png';
                     });
                 }
             }
         },
-        deleteFile(index) {
+        deleteFile(file, index) {
             // почему удаляются с конца???
-            // console.log(index)
+            console.log(file, index)
             this.files.splice(index, 1)
+            console.log('files', this.files)
         },
         closePopup() {
             this.$emit('update:shown', false)

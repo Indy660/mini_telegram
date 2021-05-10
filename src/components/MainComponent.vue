@@ -23,22 +23,20 @@
                     <div class="feed_content">
                         <div class="post" v-for="(post, index) in sortPosts()" :key="index">
                             <div class="original_post">
-<!--                                [randomRGBA()]-->
-<!--                                , {'background-image': 'url(' + getAvatar(post.avatar) + ')'}-->
-<!--                                {'background-image': 'url(' + getAvatar(post.avatar) + ')'},-->
                                 <div class="avatar"
-                                     :style="{backgroundImage: 'url(' + getAvatar(post.avatar) + ')',backgroundColor: randomRGBA(post.avatar)}"
+                                     :style="{backgroundImage: 'url(' + getAvatar(post.avatar) + ')', backgroundColor: randomRGBA(post.avatar)}"
                                      @mouseover="showUserName('post', post.id)" @mouseleave="hideUserName()"
                                 >
+<!--                                    v-if="post.id === show_user_name.id && show_user_name.type === 'post'"-->
                                     <div v-if="post.id === show_user_name.id && show_user_name.type === 'post'" class="user_name_block">
                                         {{ post.name_user }}
                                         <div class="arrow"></div>
                                     </div>
                                 </div>
                                 <div class="text_block">
-                                    <template v-if="post.preview">
-                                        <div class="preview"></div>
-                                    </template>
+<!--                                    <template v-if="post.preview">-->
+<!--                                        <div class="preview"></div>-->
+<!--                                    </template>-->
                                     <div class="text">
                                         {{ post.text }}
                                     </div>
@@ -52,7 +50,7 @@
                                             @mouseover="showUserName('comment', comment.id, post.id)" @mouseleave="hideUserName()"
                                         >
 <!--                                            v-if="comment.id === show_user_name.id && show_user_name.type === 'comment' && post.id === show_user_name.post_id"-->
-                                            <div  v-if="comment.id === show_user_name.id && show_user_name.type === 'comment' && post.id === show_user_name.post_id"  class="user_name_block">
+                                            <div   v-if="comment.id === show_user_name.id && show_user_name.type === 'comment' && post.id === show_user_name.post_id" class="user_name_block">
                                                 {{ comment.name_user }}
                                                 <div class="arrow"></div>
                                             </div>
@@ -167,7 +165,7 @@
                                 preview: '',
                             }
                         }
-                   },
+                    },
                 },
                 show_user_name: {},
                 top_themes: {
@@ -179,6 +177,8 @@
 
         },
         mounted() {
+            // const posts = localStorage.getItem('post');
+            // posts ? (this.posts = posts) :
             this.sortPosts()
         },
         methods: {
@@ -198,30 +198,34 @@
                 // let r = Math.random;
                 // let s = 255;
                 // return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
-                const colors = ['#48C7AD', '#883227', '#E3AB6A', '#87DE20', '#FBE2EB', '#380D96', '#2B70D8', '#E64BC9', '#F9E6E6', '#8C00FB']
-                return id <= 10 ? colors[id-1] : colors[id % colors.length]
+                const colors = ['#48C7AD', '#883227', '#E3AB6A', '#87DE20', '#FBE2EB', '#380D96', '#2B70D8', '#E64BC9', '#F9E6E6', '#8C00FB'];
+                return id <= 10 ? colors[id - 1] : colors[id % colors.length]
 
             },
             generateMessage(length_message) {
                 let result = [];
-                let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let characters = 'abcdefghijklmnopqrstuvwxyz0123456789 ';
                 let characters_length = characters.length;
                 for (let i = 0; i < length_message; i++ ) {
                     result.push(characters.charAt(Math.floor(Math.random() * characters_length)));
                 }
                 return result.join('');
+                // return result.charAt(0).toUpperCase() + result.slice(1);
             },
             getAvatar(avatar) {
                 //12 - по количеству фотографий в аватарках
-                const name = avatar <= 10 ? avatar : avatar % 12 === 0 ? 1 : avatar % 12
+                const name = avatar <= 10 ? avatar : avatar % 12 === 0 ? 1 : avatar % 12;
                 // console.log(name)
-                let images = require.context('../assets/images/avatars', false, /\.svg$/)
+                let images = require.context('../assets/images/avatars', false, /\.svg$/);
                 return images('./' + name + ".svg")
             },
             addPost() {
                 if (this.text_new_post) {
-                    const id_post = parseInt(this.findLastIdPost('posts')) + 1;
+                    const id_post = parseInt(this.findLastIdPost()) + 1;
                     // console.log(id_post)
+                    // от 1 до 4 раз ещё будет сгенерирован комментарийй
+                    const time_generate_comment = Math.floor(Math.random() * 4) + 1;
+                    // console.log('time_generate_comment', time_generate_comment)
                     const post = {
                         id: id_post,
                         text: this.text_new_post,
@@ -240,13 +244,15 @@
                     this.posts[id_post] = post;
                     this.sortPosts();
                     this.text_new_post = '';
-                    this.generateRandomComments(id_post)
+                    this.generateRandomComments(id_post, time_generate_comment)
                 }
             },
-            generateRandomComments(id_post) {
-                console.log('generateRandomComments', this.posts[id_post].comments)
-                const index_comment = this.findLastIdPost(`posts.[${id_post}].comments`)
-                // const index_comment = this.findLastIdPost('posts.[' + id_post + '].comments')
+            async generateRandomComments(id_post, step_generate = 0) {
+                // console.log('!!!', id_post, step_generate)
+                // console.log('generateRandomComments', this.posts[id_post], this.posts[id_post].comments)
+                const index_comment = this.findLastIdComment(id_post);
+                // const index_comment = 4
+                // console.log('index_comment', index_comment);
                 let comment = this.generateMessage(10);
                 let name_user = this.generateMessage(5);
                 let avatar = 7;
@@ -260,35 +266,81 @@
                 // console.log('index_commen', index_comment)
                 // от 5 до 30 сек
                 // 25
-                const time = Math.floor(Math.random() * 1) + 2;
+                const time = Math.floor(Math.random() * 5) + 2;
                 // console.log(time)
                 // console.log(this.posts[id_post], this.posts[id_post].comments)
                 const add_comment = () => {
-                    this.$set(this.posts[id_post].comments, index_comment, obj_comment)
+                    this.$set(this.posts[id_post].comments, index_comment, obj_comment);
                     // console.log(1, this.posts[id_post].comments[index_comment])
-                    this.sortPosts()
+                    // this.sortPosts()
+                    this.$forceUpdate()
                 };
-                setTimeout(
-                    add_comment,
+
+               await new Promise(resolve => {
+                    setTimeout(
+                        () => {
+                            add_comment();
+                            resolve();
+                        },
                     time * 100
-                );
+                    )}
+               );
+               if (step_generate > 0) {
+                   this.generateRandomComments(id_post, step_generate - 1)
+               } else {
+                   return
+               }
+               // localStorage.setItem('post', this.posts);
+
                 // clearTimeout(timerId);
+
             },
-            findLastIdPost(closure) {
-                if (this[closure] && Object.keys(this[closure]) && Object.keys(this[closure]).length > 0) {
-                    console.log(Object.keys(this[closure]))
-                    const sorted_id = Object.keys(this[closure]).sort((a, b) => {
+            // findLastIdPost2(data_key) {
+                // this.posts
+                // console.log(data_key, 'closure')
+                // console.log(this[data_key], 'closure11')
+                // console.log(this.posts['4'])
+                // console.log(this.posts[4].comments, 'closure11')
+                // if (this[data_key] && Object.keys(this[data_key]) && Object.keys(this[data_key]).length > 0) {
+                //     console.warn(111, Object.keys(this[data_key]))
+                //     const sorted_id = Object.keys(this[data_key]).sort((a, b) => {
+                //         return b - a;
+                //     });
+                //     return sorted_id[0]
+                // } else {
+                //     return 1
+                // }
+            // },
+            findLastIdComment(data_key) {
+                console.log(this.posts[data_key], this.posts[data_key].comments)
+                if (Object.keys(this.posts[data_key]) && Object.keys(this.posts[data_key].comments) && Object.keys(this.posts[data_key].comments).length > 0) {
+                    const sorted_id = Object.keys(this.posts[data_key].comments).sort((a, b) => {
                         return b - a;
                     });
+                    console.log('sorted_id[0]', sorted_id[0] + 1)
+                    return sorted_id[0] + 1
+                } else {
+                    return 1
+                }
+            },
+            findLastIdPost() {
+                if (this.posts && Object.keys(this.posts) && Object.keys(this.posts).length > 0) {
+                    const sorted_id = Object.keys(this.posts).sort((a, b) => {
+                        return b - a;
+                    });
+                    // console.log('sorted_id[0]!!!', sorted_id[0])
                     return sorted_id[0]
                 } else {
                     return 1
                 }
             },
+            // findLastIndex() {
+            //
+            // },
             showUserName(type, id, post_id) {
-                // console.log(this.show_user_name)
-                this.$set(this.show_user_name, 'type', type)
-                this.$set(this.show_user_name, 'id', id)
+                // console.log(this.show_user_name);
+                this.$set(this.show_user_name, 'type', type);
+                this.$set(this.show_user_name, 'id', id);
                 post_id ? this.$set(this.show_user_name, 'post_id', post_id) : ''
             },
             hideUserName() {
@@ -300,6 +352,9 @@
 
 <!--scoped-->
 <style lang="scss">
+    * {
+        box-sizing: border-box;
+    }
     .main {
         display: flex;
         justify-content: center;
@@ -429,9 +484,10 @@
                                         /*all: unset;*/
                                         position: absolute;
                                         min-width: 50px;
-                                        max-height: 20px;
+                                        /*max-height: 20px;*/
+                                        height: 26px;
                                         background: #9de9ff;
-                                        top: 13px;
+                                        top: 10px;
                                         z-index: 3;
                                         font-style: normal;
                                         font-weight: normal;
@@ -444,18 +500,19 @@
                                         white-space: nowrap;
                                         border: 1px solid rgba(0, 0, 0, .1);
                                         border-left: none;
-                                        left: -60px;
+                                        padding: 3px;
+                                        right: 120%;
                                         .arrow {
                                             position: absolute;
                                             width: 0;
                                             height: 0;
-                                            border: 7px solid #9de9ff;
+                                            border: 13px solid #9de9ff;
                                             border-top-color: transparent;
                                             /*border-left-color: transparent;*/
                                             border-bottom-color: transparent;
                                             border-right-color: transparent;
-                                            top: 2px;
-                                            right: -15px;
+                                            top: -1px;
+                                            right: -26px;
                                             z-index: 3;
                                         }
                                     }
@@ -494,9 +551,9 @@
                                         .user_name_block {
                                             position: absolute;
                                             min-width: 50px;
-                                            max-height: 20px;
+                                            height: 26px;
                                             background: #d2dbff;
-                                            top: 5px;
+                                            top: 1px;
                                             z-index: 3;
                                             font-style: normal;
                                             font-weight: normal;
@@ -508,18 +565,18 @@
                                             white-space: nowrap;
                                             border: 1px solid rgba(0, 0, 0, .1);
                                             border-left: none;
-                                            left: -60px;
-                                            direction: rtl;
+                                            padding: 3px;
+                                            right: 140%;
                                             .arrow {
                                                 position: absolute;
                                                 width: 0;
                                                 height: 0;
-                                                border: 7px solid #d2dbff;
+                                                border: 13px solid #d2dbff;
                                                 border-top-color: transparent;
                                                 border-bottom-color: transparent;
                                                 border-right-color: transparent;
-                                                top: 2px;
-                                                right: -15px;
+                                                top: -1px;
+                                                right: -26px;
                                                 z-index: 3;
                                             }
                                         }
