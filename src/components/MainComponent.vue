@@ -152,7 +152,7 @@
                             },
                         }
                     },
-                   3: {
+                    3: {
                         id: 3,
                         text: 'А это третий пост',
                         name_user: 'dima',
@@ -183,6 +183,7 @@
         },
         methods: {
             sortPosts() {
+                console.log('sortPosts')
                 const id_array_reverse = Object.keys(this.posts).sort((a, b) => {
                     return b - a;
                 });
@@ -201,24 +202,15 @@
                 return id <= 10 ? colors[id-1] : colors[id % colors.length]
 
             },
-            makeId(length) {
+            generateMessage(length_message) {
                 let result = [];
                 let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                let charactersLength = characters.length;
-                for (let i = 0; i < length; i++ ) {
-                    result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
+                let characters_length = characters.length;
+                for (let i = 0; i < length_message; i++ ) {
+                    result.push(characters.charAt(Math.floor(Math.random() * characters_length)));
                 }
                 return result.join('');
             },
-            // getAvatar(number) {
-            //     console.log('getAvatar', number)
-            //     // return "background-image:url('../assets/images/avataaars_8.svg')"
-            //     // return require(`~/assets/images/big_cards_slider/${top_block_image[this.top_block_slide]}`).default
-            //     // return require(`~/assets/logo.png`)
-            //     // return '../assets/logo.png'
-            //     return '@/assets/images/avataaars_8.svg'
-            //     // return '/assets/images/avataaars_' + number + '.svg'
-            // },
             getAvatar(avatar) {
                 //12 - по количеству фотографий в аватарках
                 const name = avatar <= 10 ? avatar : avatar % 12 === 0 ? 1 : avatar % 12
@@ -228,31 +220,76 @@
             },
             addPost() {
                 if (this.text_new_post) {
-                    const id_post = parseInt(this.findLastIdPost()) + 1;
+                    const id_post = parseInt(this.findLastIdPost('posts')) + 1;
                     // console.log(id_post)
                     const post = {
                         id: id_post,
                         text: this.text_new_post,
                         avatar: 1,
                         name_user: this.user_info.name_user,
-                        comments: {}
+                        comments: {
+                            // 1: {
+                            //     id: 1,
+                            //     text: '131231',
+                            //     avatar: 7,
+                            //     name_user: 'katya',
+                            //     preview: '',
+                            // }
+                        }
                     };
                     this.posts[id_post] = post;
                     this.sortPosts();
                     this.text_new_post = '';
+                    this.generateRandomComments(id_post)
                 }
             },
-            findLastIdPost() {
-               const sorted_id = Object.keys(this.posts).sort((a, b) => {
-                   return b - a;
-               });
-               return sorted_id[0]
+            generateRandomComments(id_post) {
+                console.log('generateRandomComments', this.posts[id_post].comments)
+                const index_comment = this.findLastIdPost(`posts.[${id_post}].comments`)
+                // const index_comment = this.findLastIdPost('posts.[' + id_post + '].comments')
+                let comment = this.generateMessage(10);
+                let name_user = this.generateMessage(5);
+                let avatar = 7;
+                const obj_comment = {
+                    id: index_comment,
+                    text: comment,
+                    avatar: avatar,
+                    name_user: name_user,
+                    preview: '',
+                };
+                // console.log('index_commen', index_comment)
+                // от 5 до 30 сек
+                // 25
+                const time = Math.floor(Math.random() * 1) + 2;
+                // console.log(time)
+                // console.log(this.posts[id_post], this.posts[id_post].comments)
+                const add_comment = () => {
+                    this.$set(this.posts[id_post].comments, index_comment, obj_comment)
+                    // console.log(1, this.posts[id_post].comments[index_comment])
+                    this.sortPosts()
+                };
+                setTimeout(
+                    add_comment,
+                    time * 100
+                );
+                // clearTimeout(timerId);
+            },
+            findLastIdPost(closure) {
+                if (this[closure] && Object.keys(this[closure]) && Object.keys(this[closure]).length > 0) {
+                    console.log(Object.keys(this[closure]))
+                    const sorted_id = Object.keys(this[closure]).sort((a, b) => {
+                        return b - a;
+                    });
+                    return sorted_id[0]
+                } else {
+                    return 1
+                }
             },
             showUserName(type, id, post_id) {
                 // console.log(this.show_user_name)
                 this.$set(this.show_user_name, 'type', type)
                 this.$set(this.show_user_name, 'id', id)
-                post_id ?  this.$set(this.show_user_name, 'post_id', post_id) : ''
+                post_id ? this.$set(this.show_user_name, 'post_id', post_id) : ''
             },
             hideUserName() {
                 this.show_user_name = {}
