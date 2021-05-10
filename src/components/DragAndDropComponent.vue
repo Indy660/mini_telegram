@@ -6,7 +6,7 @@
             <form ref="fileform" class="form">
                 Перетащите файлы, которые хотите закрепить в посте (максимум 4)
             </form>
-            <input type="file" class="input_files" @change="onFileChange" />
+            <input type="file" class="input_files" @change="onFileChange" multiple/>
             <div class="area_file">
                 <div v-for="(file, key) in files" :key="key">
 <!--                    <div class="file" v-bind:ref="'preview' + parseInt(key)">-->
@@ -47,10 +47,11 @@ export default {
 
         this.$refs.fileform.addEventListener('drop', function (e) {
             for (let i = 0; i < e.dataTransfer.files.length; i++) {
-                this.files.push(e.dataTransfer.files[i]);
-                this.getImagePreviews();
+                this.files.push(URL.createObjectURL(e.dataTransfer.files[i]))
+                //cтарая реализация
+                // this.files.push(e.dataTransfer.files[i]);
+                // this.getImagePreviews();
             }
-            // this.submitFiles();
         }.bind(this));
 
         this.$refs.fileform.addEventListener('dragenter', function (event) {
@@ -65,31 +66,35 @@ export default {
     },
     methods: {
         onFileChange(event) {
-            console.log('onFileChange')
-            const file = event.target.files[0];
-            this.files.push(URL.createObjectURL(file));
+            // console.log('onFileChange')
+            //cтарая реализация
+            // const file = event.target.files[0];
+            // this.files.push(URL.createObjectURL(file));
             // this.getImagePreviews()
-        },
-        getImagePreviews() {
-            for (let i = 0; i < this.files.length; i++) {
-                if (/\.(jpe?g|png|gif)$/i.test(this.files[i].name)) {
-                    let reader = new FileReader();
-                    reader.addEventListener("load", function () {
-                        this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("${reader.result}")`;
-                    }.bind(this), false);
-                    reader.readAsDataURL(this.files[i]);
-                } else {
-                    this.$nextTick(function () {
-                        this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("../assets/images/default_image.png")`
-                    });
-                }
+            const files = event.target.files;
+            for (let i = 0; i < files.length; i++) {
+                this.files.push(URL.createObjectURL(files[i]));
             }
         },
+        //cтарая реализация
+        // getImagePreviews() {
+        //     for (let i = 0; i < this.files.length; i++) {
+        //         this.files.push(URL.createObjectURL(this.files[i]))
+                // if (/\.(jpe?g|png|gif)$/i.test(this.files[i].name)) {
+                //     let reader = new FileReader();
+                //     reader.addEventListener("load", function () {
+                //         this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("${reader.result}")`;
+                //     }.bind(this), false);
+                //     reader.readAsDataURL(this.files[i]);
+                // } else {
+                //     this.$nextTick(function () {
+                //         this.$refs['preview' + parseInt(i)][0].style.backgroundImage = `url("../assets/images/default_image.png")`
+                //     });
+                // }
+        //     }
+        // },
         deleteFile(file, index) {
-            // почему удаляются с конца???
-            console.log(file, index)
             this.files.splice(index, 1)
-            console.log('files', this.files)
         },
         closePopup() {
             this.$emit('update:shown', false)
@@ -180,7 +185,8 @@ export default {
                     margin-right: 30px;
                     margin-bottom: 30px;
                     position: relative;
-                    background-size: cover;
+                    background-size: contain;
+                    background-position: center;
                     background-repeat: no-repeat;
                     border: 1px solid rgba(0, 0, 0, 0.1);
 
