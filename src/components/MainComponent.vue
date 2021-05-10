@@ -10,18 +10,18 @@
             <div class="main_blocks">
                 <div class="feed_block">
                     <div class="input_block">
-                        <textarea v-model="new_post"></textarea>
+                        <textarea v-model="text_new_post"></textarea>
                         <div class="block_with_buttons">
                             <div class="button_add_image" @click="open_popup = true">
                                 <div class="text">+</div>
                             </div>
-                            <div class="button_add_post" @click="addPost()">
+                            <div class="button_add_post" :class="!text_new_post ? 'disabled' : 'active'" @click="addPost()">
                                 <div class="text">Добавить запись</div>
                             </div>
                         </div>
                     </div>
                     <div class="feed_content">
-                        <div class="post" v-for="(post, index) in posts" :key="index">
+                        <div class="post" v-for="(post, index) in sortPosts()" :key="index">
                             <div class="original_post">
 <!--                                [randomRGBA()]-->
 <!--                                , {'background-image': 'url(' + getAvatar(post.avatar) + ')'}-->
@@ -87,14 +87,14 @@
         data() {
             return {
                 open_popup: false,
-                new_post: '',
+                text_new_post: '',
                 user_info: {
-                    name_user: 'user_user',
+                    name_user: 'Анонимный анонимус',
                 },
                 posts: {
                     1: {
                         id: 1,
-                        text: '"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."',
+                        text: 'Это первый комментарий',
                         name_user: 'vasya Panfilov 1111',
                         avatar: 12,
                         preview: '',
@@ -139,7 +139,7 @@
                             2: {
                                 id: 2,
                                 text: '312 1231 sfdfs fs',
-                                avatar: 2,
+                                avatar: 12,
                                 name_user: 'fs 2 3423',
                                 preview: '',
                             },
@@ -154,7 +154,7 @@
                     },
                    3: {
                         id: 3,
-                        text: '"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."',
+                        text: 'А это третий пост',
                         name_user: 'dima',
                         avatar: 555,
                         preview: '',
@@ -167,7 +167,7 @@
                                 preview: '',
                             }
                         }
-                    },
+                   },
                 },
                 show_user_name: {},
                 top_themes: {
@@ -176,16 +176,22 @@
             }
         },
         computed: {
-            // getAvatar: {
-            //     get() {
-            //         return this.way
-            //     },
-            //     set(number) {
-            //         this.way = '../assets/images/avataaars_' + number + '.svg'
-            //     }
-            // }
+
+        },
+        mounted() {
+            this.sortPosts()
         },
         methods: {
+            sortPosts() {
+                const id_array_reverse = Object.keys(this.posts).sort((a, b) => {
+                    return b - a;
+                });
+                const reverse_posts = {};
+                for (let i = 0; i < id_array_reverse.length; i++) {
+                    reverse_posts[i] = this.posts[id_array_reverse.length - i]
+                }
+                return reverse_posts
+            },
             randomRGBA(id) {
                 // let o = Math.round;
                 // let r = Math.random;
@@ -221,7 +227,26 @@
                 return images('./' + name + ".svg")
             },
             addPost() {
-
+                if (this.text_new_post) {
+                    const id_post = parseInt(this.findLastIdPost()) + 1;
+                    // console.log(id_post)
+                    const post = {
+                        id: id_post,
+                        text: this.text_new_post,
+                        avatar: 1,
+                        name_user: this.user_info.name_user,
+                        comments: {}
+                    };
+                    this.posts[id_post] = post;
+                    this.sortPosts();
+                    this.text_new_post = '';
+                }
+            },
+            findLastIdPost() {
+               const sorted_id = Object.keys(this.posts).sort((a, b) => {
+                   return b - a;
+               });
+               return sorted_id[0]
             },
             showUserName(type, id, post_id) {
                 // console.log(this.show_user_name)
@@ -316,20 +341,24 @@
                             .button_add_post {
                                 width: 200px;
                                 height: 50px;
-                                background-color: #3440ed;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
                                 cursor: pointer;
-
-                                &:hover {
-                                    background-color: #3560ed;
+                                border: 1px solid rgba(0, 0, 0, .2);
+                                &.disabled {
+                                    cursor: auto;
+                                    background-color: rgba(18, 16, 33, 0.65);
                                 }
-
-                                &:active {
-                                    background-color: #1226ed;
+                                &.active {
+                                    background-color: #3440ed;
+                                    &:hover {
+                                        background-color: #3560ed;
+                                    }
+                                    &:active {
+                                        background-color: #1226ed;
+                                    }
                                 }
-
                                 .text {
                                     color: white;
                                     font-size: 14px;
