@@ -1,10 +1,10 @@
 <template>
-    <div class="main">
+    <div class="main" :class="black_theme ? 'black_theme' : ''">
         <div class="content">
             <div class="header">
                 <div class="themes">
-                    <div class="light">Светлая тема</div>
-                    <div class="black">Тёмная тема</div>
+                    <div class="light" @click="black_theme = false">Светлая тема</div>
+                    <div class="black" @click="black_theme = true">Тёмная тема</div>
                 </div>
             </div>
             <div class="main_blocks">
@@ -84,6 +84,7 @@
         },
         data() {
             return {
+                black_theme: false,
                 open_popup: false,
                 text_new_post: '',
                 user_info: {
@@ -255,7 +256,7 @@
                 // console.log('index_comment', index_comment);
                 let comment = this.generateMessage(10);
                 let name_user = this.generateMessage(5);
-                let avatar = 7;
+                let avatar = Math.floor(Math.random() * 11) + 1;
                 const obj_comment = {
                     id: index_comment,
                     text: comment,
@@ -265,8 +266,7 @@
                 };
                 // console.log('index_commen', index_comment)
                 // от 5 до 30 сек
-                // 25
-                const time = Math.floor(Math.random() * 5) + 2;
+                const time = Math.floor(Math.random() * 25) + 5;
                 // console.log(time)
                 // console.log(this.posts[id_post], this.posts[id_post].comments)
                 const add_comment = () => {
@@ -282,7 +282,7 @@
                             add_comment();
                             resolve();
                         },
-                    time * 100
+                    time * 1000
                     )}
                );
                if (step_generate > 0) {
@@ -359,6 +359,10 @@
         display: flex;
         justify-content: center;
         flex: 1;
+        &.black_theme {
+            background: #000000a6;
+            color: #fff6e6;
+        }
         .content {
             width: 1192px;
             .header {
@@ -368,8 +372,11 @@
                 .themes {
                     display: flex;
                     font-size: 18px;
-                    opacity: 0.7;
+                    &>* {
+                        opacity: 0.7;
+                    }
                     &>*:hover {
+                        cursor: pointer;
                         opacity: 1;
                     }
                     .light {
