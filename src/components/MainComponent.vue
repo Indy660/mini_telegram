@@ -65,7 +65,21 @@
                     </div>
                 </div>
                 <div class="most_popular_posts">
-
+                    <div class="name">
+                        Самые часто обсуждаемые посты
+                    </div>
+                    <div class="post">
+                        <div class="circle">14</div>
+                        <div class="text">Тема</div>
+                    </div>
+                    <div class="post">
+                        <div class="circle">11</div>
+                        <div class="text">Другая, но с ооооооочень длиным названием, даже незнаю, как её продолжить.</div>
+                    </div>
+                    <div class="post">
+                        <div class="circle">9</div>
+                        <div class="text">Ещё одна тема</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -178,13 +192,26 @@
 
         },
         mounted() {
-            // const posts = localStorage.getItem('post');
-            // posts ? (this.posts = posts) :
-            this.sortPosts()
+            const posts = localStorage.getItem('post');
+            posts ? (this.posts = JSON.parse(posts)) : this.sortPosts()
+
+            // this.sortPosts()
+            // let openRequest = indexedDB.open("posts", 1);
+            // openRequest.onupgradeneeded = () => {
+            //     console.log("Базы нет");
+            //     this.sortPosts()
+            // };
+            // openRequest.onsuccess = () => {
+            //     const db = openRequest.result;
+            //     if (db) {
+            //         console.log('baza', db);
+            //         this.posts = db
+            //     }
+            // }
         },
         methods: {
             sortPosts() {
-                console.log('sortPosts')
+                // console.log('sortPosts')
                 const id_array_reverse = Object.keys(this.posts).sort((a, b) => {
                     return b - a;
                 });
@@ -282,16 +309,15 @@
                             add_comment();
                             resolve();
                         },
-                    time * 1000
+                    time * 100
                     )}
                );
                if (step_generate > 0) {
                    this.generateRandomComments(id_post, step_generate - 1)
                } else {
+                   localStorage.setItem('post', JSON.stringify(this.posts));
                    return
                }
-               // localStorage.setItem('post', this.posts);
-
                 // clearTimeout(timerId);
 
             },
@@ -317,7 +343,7 @@
                     const sorted_id = Object.keys(this.posts[data_key].comments).sort((a, b) => {
                         return b - a;
                     });
-                    console.log('sorted_id[0]', sorted_id[0] + 1)
+                    // console.log('sorted_id[0]', sorted_id[0] + 1)
                     return sorted_id[0] + 1
                 } else {
                     return 1
@@ -388,6 +414,7 @@
             .main_blocks {
                 display: flex;
                 /*flex: 1;*/
+                justify-content: space-between;
                 .feed_block {
                     width: 700px;
                     margin-bottom: 30px;
@@ -599,6 +626,30 @@
 
                 .most_popular_posts {
                     width: 300px;
+                    .name {
+                        font-size: 18px;
+                        margin-bottom: 70px;
+                    }
+                    .post {
+                        display: flex;
+                        align-items: center;
+                        height: 80px;
+                        margin-bottom: 30px;
+                        .circle {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 60px;
+                            height: 60px;
+                            border-radius: 50%;
+                            flex: none;
+                            border: 1px solid rgba(0,0,0,.1);
+                            margin-right: 30px;
+                        }
+                        .text {
+                            text-align: left;
+                        }
+                    }
                 }
             }
         }
