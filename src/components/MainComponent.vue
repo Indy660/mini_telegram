@@ -10,12 +10,14 @@
             <div class="main_blocks">
                 <div class="feed_block">
                     <div class="input_block">
-                        <textarea v-model="text_new_post"></textarea>
+                        <textarea ref="fileform" class="form" v-model="text_new_post">
+<!--                           Сюда можно ператскивать изображения, но выводиться будет только один (пока)-->
+                        </textarea>
                         <div class="block_with_buttons">
                             <div class="button_add_image" @click="open_popup = true">
                                 <div class="text">+</div>
                             </div>
-                            <div class="button_add_post" :class="!text_new_post ? 'disabled' : 'active'" @click="addPost()">
+                            <div class="button_add_post" :class="(!text_new_post && !files[files.length - 1]) ? 'disabled' : 'active'" @click="addPost()">
                                 <div class="text">Добавить запись</div>
                             </div>
                         </div>
@@ -34,12 +36,12 @@
                                     </div>
                                 </div>
                                 <div class="text_block">
-<!--                                    <template v-if="post.preview">-->
-<!--                                        <div class="preview"></div>-->
-<!--                                    </template>-->
                                     <div class="text">
                                         {{ post.text }}
                                     </div>
+                                    <template v-if="post.preview">
+                                        <div class="preview" :style="{backgroundImage: `url('${post.preview}')`}"></div>
+                                    </template>
                                 </div>
                             </div>
                             <template v-if="post.comments">
@@ -58,6 +60,9 @@
                                         <div class="comment">
                                             {{ comment.text }}
                                         </div>
+<!--                                        <template v-if="comment.preview">-->
+<!--                                            <div class="preview" :style="{backgroundImage: `url('${comment.preview}')`}"></div>-->
+<!--                                        </template>-->
                                     </div>
                                 </div>
                             </template>
@@ -101,66 +106,60 @@
                 black_theme: false,
                 open_popup: false,
                 text_new_post: '',
+                files: [],
                 user_info: {
-                    name_user: 'Анонимный анонимус',
+                    name_user: 'Анонимный анонимус (т.е Вы)',
                 },
                 posts: {
                     1: {
                         id: 1,
                         text: 'Это первый комментарий',
-                        name_user: 'vasya Panfilov 1111',
+                        name_user: 'vasya Panfilov',
                         avatar: 12,
-                        preview: '',
+                        preview: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/IC_Blue_Melody_Flipper_CHA_male_EX1_CACIB.jpg',
                         comments: {
                             1: {
                                 id: 1,
-                                text: '131231',
+                                text: 'Вау!',
                                 avatar: 7,
-                                name_user: 'sf sf 234 sdfsfdasasd',
+                                name_user: 'Парень с первым комментарием',
                                 preview: '',
                             },
                             2: {
                                 id: 2,
-                                text: '312 1231 sfdfs fs',
+                                text: 'Круто',
                                 avatar: 6,
-                                name_user: 'fs 2 3423',
+                                name_user: 'Второй комментарий',
                                 preview: '',
                             },
                             3: {
                                 id: 3,
                                 text: '"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."',
                                 avatar: 2,
-                                name_user: 'sfs 23',
+                                name_user: 'Неизвестный',
                                 preview: '',
                             },
                         }
                     },
                     2: {
                         id: 2,
-                        text: '131231',
+                        text: 'Второй?',
                         name_user: 'nikita',
                         avatar: 7,
-                        preview: '',
+                        preview: 'http://risovach.ru/upload/2014/02/mem/kot-iz-shreka_42712345_big_.jpeg',
                         comments: {
                             1: {
                                 id: 1,
-                                text: '131231',
+                                text: 'Все верно!',
                                 avatar: 9,
                                 name_user: 'dima',
                                 preview: '',
                             },
                             2: {
                                 id: 2,
-                                text: '312 1231 sfdfs fs',
+                                text: 'Но это не точно!',
                                 avatar: 12,
-                                name_user: 'fs 2 3423',
-                                preview: '',
-                            },
-                            3: {
-                                id: 3,
-                                text: '13fs21341 sf1231',
-                                avatar: 11,
-                                name_user: 'sasha 666',
+                                name_user: 'Петя Парфенов',
                                 preview: '',
                             },
                         }
@@ -174,7 +173,7 @@
                         comments: {
                             1: {
                                 id: 1,
-                                text: '131231',
+                                text: '!!!!',
                                 avatar: 7,
                                 name_user: 'katya',
                                 preview: '',
@@ -193,8 +192,30 @@
         },
         mounted() {
             const posts = localStorage.getItem('post');
-            posts ? (this.posts = JSON.parse(posts)) : this.sortPosts()
+            posts ? (this.posts = JSON.parse(posts)) : this.sortPosts();
 
+            ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach(function (evt) {
+            this.$refs.fileform.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+            }.bind(this));
+
+            this.$refs.fileform.addEventListener('drop', function (e) {
+                for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                    this.files.push(URL.createObjectURL(e.dataTransfer.files[i]))
+                }
+            }.bind(this));
+
+            this.$refs.fileform.addEventListener('dragenter', function (event) {
+                event.target.classList.add('form_dragEnter');
+            }, false);
+            this.$refs.fileform.addEventListener('dragleave', function (event) {
+                event.target.classList.remove('form_dragEnter');
+            }, false);
+            this.$refs.fileform.addEventListener('drop', function (event) {
+                event.target.classList.remove('form_dragEnter');
+            }, false);
             // this.sortPosts()
             // let openRequest = indexedDB.open("posts", 1);
             // openRequest.onupgradeneeded = () => {
@@ -231,13 +252,14 @@
 
             },
             generateMessage(length_message) {
-                let result = [];
+                let preresult = [];
                 let characters = 'abcdefghijklmnopqrstuvwxyz0123456789 ';
                 let characters_length = characters.length;
                 for (let i = 0; i < length_message; i++ ) {
-                    result.push(characters.charAt(Math.floor(Math.random() * characters_length)));
+                    preresult.push(characters.charAt(Math.floor(Math.random() * characters_length)));
                 }
-                return result.join('');
+                return preresult.join('');
+                // let result = preresult[0]
                 // return result.charAt(0).toUpperCase() + result.slice(1);
             },
             getAvatar(avatar) {
@@ -247,8 +269,11 @@
                 let images = require.context('../assets/images/avatars', false, /\.svg$/);
                 return images('./' + name + ".svg")
             },
+            // findLinkImage() {
+            //   const regex = /(https?:\/\/.*\.(?:jpg|jpeg|png|gif))/i
+            // },
             addPost() {
-                if (this.text_new_post) {
+                if (this.text_new_post || this.files[this.files.length - 1]) {
                     const id_post = parseInt(this.findLastIdPost()) + 1;
                     // console.log(id_post)
                     // от 1 до 4 раз ещё будет сгенерирован комментарийй
@@ -259,19 +284,13 @@
                         text: this.text_new_post,
                         avatar: 1,
                         name_user: this.user_info.name_user,
-                        comments: {
-                            // 1: {
-                            //     id: 1,
-                            //     text: '131231',
-                            //     avatar: 7,
-                            //     name_user: 'katya',
-                            //     preview: '',
-                            // }
-                        }
+                        preview: this.files[this.files.length -1],
+                        comments: {}
                     };
                     this.posts[id_post] = post;
                     this.sortPosts();
                     this.text_new_post = '';
+                    this.files = [];
                     this.generateRandomComments(id_post, time_generate_comment)
                 }
             },
@@ -281,8 +300,12 @@
                 const index_comment = this.findLastIdComment(id_post);
                 // const index_comment = 4
                 // console.log('index_comment', index_comment);
-                let comment = this.generateMessage(10);
-                let name_user = this.generateMessage(5);
+                let length_comment = Math.floor(Math.random() * 250) + 3;
+                let comment = this.generateMessage(length_comment);
+
+                let length_name_user = Math.floor(Math.random() * 10) + 4;
+                let name_user = this.generateMessage(length_name_user);
+
                 let avatar = Math.floor(Math.random() * 11) + 1;
                 const obj_comment = {
                     id: index_comment,
@@ -436,6 +459,23 @@
                                 border-color: #98a8f8;
                                 outline: none;
                             }
+                            &.form {
+                                /*width: 80%;*/
+                                /*height: 280px;*/
+                                /*display: flex;*/
+                                /*justify-content: center;*/
+                                /*align-items: center;*/
+                                /*border: 1px dashed #8b8dc0;*/
+                                /*color: rgba(0, 0, 0, 0.7);*/
+                                /*text-align: center;*/
+                                /*padding: 0 30px;*/
+                                /*flex: none;*/
+                                &.form_dragEnter {
+                                    background: #98ebfd;
+                                    border: 1px dashed #000000;
+                                    transition: 0.3s;
+                                }
+                            }
                         }
 
                         .block_with_buttons {
@@ -553,10 +593,18 @@
                                 }
                                 .text_block {
                                     width: 600px;
+                                    display: flex;
+                                    justify-content: space-between;
                                     .preview {
-                                        height: 200px;
-                                        width: 100%;
-                                        margin-bottom: 15px;
+                                        height: 150px;
+                                        /*width: 100%;*/
+                                        width: 200px;
+                                        min-width: 150px;
+                                        margin-left: 20px;
+                                        /*margin-bottom: 15px;*/
+                                        background-size: contain;
+                                        background-repeat: no-repeat;
+                                        background-position: center;
                                     }
                                     .text {
                                         font-size: 14px;
@@ -617,6 +665,8 @@
                                     }
                                     .comment {
                                         text-align: left;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
                                     }
                                 }
                             }

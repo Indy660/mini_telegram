@@ -4,7 +4,7 @@
 
             <div class="name">Прикрепление фотографий к посту</div>
             <form ref="fileform" class="form">
-                Перетащите файлы, которые хотите закрепить в посте (максимум 4)
+                Перетащите файлы, которые хотите закрепить в посте <br/> (на данный момент только выводит в этом попапе и никак не связан с предыдущим полем)
             </form>
             <input type="file" class="input_files" @change="onFileChange" multiple/>
             <div class="area_file">
