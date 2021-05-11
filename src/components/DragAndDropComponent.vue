@@ -127,12 +127,11 @@ export default {
             z-index: 11;
             background-color: white;
             overflow: hidden;
-
+            cursor: auto;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-
             .name {
                 font-size: 25px;
                 margin-bottom: 20px;
