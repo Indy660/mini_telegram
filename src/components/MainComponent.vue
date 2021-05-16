@@ -23,7 +23,7 @@
                         </div>
                     </div>
                     <div class="feed_content">
-                        <div class="post" v-for="(post, index) in sortPosts()" :key="index">
+                        <div class="post" v-for="(post, index) in sortPosts" :key="index">
                             <div class="original_post">
                                 <div class="avatar"
                                      :style="{backgroundImage: 'url(' + getAvatar(post.avatar) + ')', backgroundColor: randomRGBA(post.avatar)}"
@@ -46,7 +46,7 @@
                             </div>
                             <template v-if="post.comments">
                                 <div class="comments">
-                                    <div class="comment_block" v-for="(comment, index) in post.comments" :key="index">
+                                    <div class="comment_block" v-for="(comment, index) in showComments(post.comments, post.show_all_comments)" :key="index">
                                         <div class="avatar"
                                              :style="{backgroundImage: 'url(' + getAvatar(comment.avatar) + ')', backgroundColor: randomRGBA(comment.avatar)}"
                                             @mouseover="showUserName('comment', comment.id, post.id)" @mouseleave="hideUserName()"
@@ -64,6 +64,11 @@
 <!--                                            <div class="preview" :style="{backgroundImage: `url('${comment.preview}')`}"></div>-->
 <!--                                        </template>-->
                                     </div>
+                                    <template v-if="!post.show_all_comments && Object.keys(post.comments).length > 2">
+                                        <div class="show_all_comments_button">
+                                            <div @click="post.show_all_comments = true, showComments(post.comments, post.show_all_comments)">Показать больше комментариев</div>
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
                         </div>
@@ -117,6 +122,7 @@
                         name_user: 'vasya Panfilov',
                         avatar: 12,
                         preview: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/IC_Blue_Melody_Flipper_CHA_male_EX1_CACIB.jpg',
+                        show_all_comments: false,
                         comments: {
                             1: {
                                 id: 1,
@@ -147,6 +153,7 @@
                         name_user: 'nikita',
                         avatar: 7,
                         preview: 'http://risovach.ru/upload/2014/02/mem/kot-iz-shreka_42712345_big_.jpeg',
+                        show_all_comments: false,
                         comments: {
                             1: {
                                 id: 1,
@@ -170,6 +177,7 @@
                         name_user: 'dima',
                         avatar: 555,
                         preview: '',
+                        show_all_comments: false,
                         comments: {
                             1: {
                                 id: 1,
@@ -188,11 +196,21 @@
             }
         },
         computed: {
-
+            sortPosts() {
+                // console.log('sortPosts')
+                const id_array_reverse = Object.keys(this.posts).sort((a, b) => {
+                    return b - a;
+                });
+                const reverse_posts = {};
+                for (let i = 0; i < id_array_reverse.length; i++) {
+                    reverse_posts[i] = this.posts[id_array_reverse.length - i]
+                }
+                return reverse_posts
+            },
         },
         mounted() {
             const posts = localStorage.getItem('post');
-            posts ? (this.posts = JSON.parse(posts)) : this.sortPosts();
+            posts ? (this.posts = JSON.parse(posts)) : this.posts;
 
             ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach(function (evt) {
             this.$refs.fileform.addEventListener(evt, function (e) {
@@ -231,16 +249,22 @@
             // }
         },
         methods: {
-            sortPosts() {
-                // console.log('sortPosts')
-                const id_array_reverse = Object.keys(this.posts).sort((a, b) => {
-                    return b - a;
-                });
-                const reverse_posts = {};
-                for (let i = 0; i < id_array_reverse.length; i++) {
-                    reverse_posts[i] = this.posts[id_array_reverse.length - i]
+            showComments(comments, show_all) {
+                // console.log('showComments')
+                // TODO: можно ли как-то перевести в компьютед свойство?
+                if (show_all) {
+                    return comments
+                } else {
+                    if (Object.keys(comments).length < 3) {
+                        return comments
+                    } else {
+                        const shortArrayComments = Object.keys(comments).slice(0, 2).reduce((result, key) => {
+                            result[key] = comments[key];
+                            return result;
+                        }, {});
+                        return shortArrayComments
+                    }
                 }
-                return reverse_posts
             },
             randomRGBA(id) {
                 // let o = Math.round;
@@ -276,19 +300,19 @@
                 if (this.text_new_post || this.files[this.files.length - 1]) {
                     const id_post = parseInt(this.findLastIdPost()) + 1;
                     // console.log(id_post)
-                    // от 1 до 4 раз ещё будет сгенерирован комментарийй
-                    const time_generate_comment = Math.floor(Math.random() * 4) + 1;
+                    // от 1 до 8 раз ещё будет сгенерирован комментарийй
+                    const time_generate_comment = Math.floor(Math.random() * 8) + 1;
                     // console.log('time_generate_comment', time_generate_comment)
                     const post = {
                         id: id_post,
                         text: this.text_new_post,
                         avatar: 1,
                         name_user: this.user_info.name_user,
-                        preview: this.files[this.files.length -1],
+                        preview: this.files[this.files.length -1] ? this.files[this.files.length -1] : '',
+                        show_all_comments: false,
                         comments: {}
                     };
-                    this.posts[id_post] = post;
-                    this.sortPosts();
+                    this.$set(this.posts, id_post, post)
                     this.text_new_post = '';
                     this.files = [];
                     this.generateRandomComments(id_post, time_generate_comment)
@@ -323,7 +347,7 @@
                     this.$set(this.posts[id_post].comments, index_comment, obj_comment);
                     // console.log(1, this.posts[id_post].comments[index_comment])
                     // this.sortPosts()
-                    this.$forceUpdate()
+                    // this.$forceUpdate()
                 };
 
                await new Promise(resolve => {
@@ -344,22 +368,6 @@
                 // clearTimeout(timerId);
 
             },
-            // findLastIdPost2(data_key) {
-                // this.posts
-                // console.log(data_key, 'closure')
-                // console.log(this[data_key], 'closure11')
-                // console.log(this.posts['4'])
-                // console.log(this.posts[4].comments, 'closure11')
-                // if (this[data_key] && Object.keys(this[data_key]) && Object.keys(this[data_key]).length > 0) {
-                //     console.warn(111, Object.keys(this[data_key]))
-                //     const sorted_id = Object.keys(this[data_key]).sort((a, b) => {
-                //         return b - a;
-                //     });
-                //     return sorted_id[0]
-                // } else {
-                //     return 1
-                // }
-            // },
             findLastIdComment(data_key) {
                 console.log(this.posts[data_key], this.posts[data_key].comments)
                 if (Object.keys(this.posts[data_key]) && Object.keys(this.posts[data_key].comments) && Object.keys(this.posts[data_key].comments).length > 0) {
@@ -383,9 +391,15 @@
                     return 1
                 }
             },
-            // findLastIndex() {
-            //
-            // },
+            downloadRandomImage() {
+                fetch('https://picsum.photos/200/150')
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        console.log(data);
+                    });
+            },
             showUserName(type, id, post_id) {
                 // console.log(this.show_user_name);
                 this.$set(this.show_user_name, 'type', type);
@@ -513,10 +527,12 @@
                                 cursor: pointer;
                                 border: 1px solid rgba(0, 0, 0, .2);
                                 &.disabled {
+                                    color: #ffffff38;
                                     cursor: auto;
                                     background-color: rgba(18, 16, 33, 0.65);
                                 }
                                 &.active {
+                                    color: white;
                                     background-color: #3440ed;
                                     &:hover {
                                         background-color: #3560ed;
@@ -526,7 +542,6 @@
                                     }
                                 }
                                 .text {
-                                    color: white;
                                     font-size: 14px;
                                     text-align: center;
                                 }
@@ -667,6 +682,23 @@
                                         text-align: left;
                                         overflow: hidden;
                                         text-overflow: ellipsis;
+                                    }
+                                }
+                                .show_all_comments_button {
+                                    width: 200px;
+                                    height: 50px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    cursor: pointer;
+                                    border: 1px solid rgba(0, 0, 0, .2);
+                                    border-radius: 25%;
+                                    margin: auto;
+                                    &:hover {
+                                        background-color: #c2caed;
+                                    }
+                                    &:active {
+                                        background-color: #698aed;
                                     }
                                 }
                             }
