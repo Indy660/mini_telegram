@@ -356,7 +356,7 @@
                             add_comment();
                             resolve();
                         },
-                    time * 100
+                    time * 1000
                     )}
                );
                if (step_generate > 0) {
