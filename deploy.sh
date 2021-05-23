@@ -17,10 +17,10 @@ git add -A
 git commit -m 'deploy'
 
 # если вы публикуете по адресу https://<USERNAME>.github.io
-# git push -f git@github.com:Indy660/Indy660.github.io.git master
+# git push -f git@github.com:Indy660/Indy660.github.io.git Indy
 
 # если вы публикуете по адресу https://<USERNAME>.github.io/<REPO>
- git push -f git@github.com:Indy660/mini_twitter.git master:gh-pages
+git push -f git@github.com:Indy660/mini_twitter.git master:gh-pages
 
 cd -
 
