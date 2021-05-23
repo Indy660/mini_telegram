@@ -1,6 +1,8 @@
 # mini_twitter
 
-https://indy660.github.io/mini_twitter/
+https://Indy660.github.io/mini_twitter/
+
+1
 
 Все мы знаем что такое твиттер (https://twitter.com/)...
 
